@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>BTC Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding-top: 100px;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 15px;
+            display: inline-block;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #f7931a;
+        }
+        .price {
+            font-size: 40px;
+            margin: 20px 0;
+        }
+        .update {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h1>₿ Bitcoin Dashboard</h1>
+    <div class="price" id="btc-price">Laden...</div>
+    <div class="update" id="update-time"></div>
+</div>
+
+<script>
+async function getBTCPrice() {
+    try {
+        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur");
+        const data = await response.json();
+
+        const price = data.bitcoin.eur;
+
+        document.getElementById("btc-price").innerText = "€ " + price.toLocaleString();
+
+        const now = new Date();
+        document.getElementById("update-time").innerText =
+            "Laatste update: " + now.toLocaleTimeString();
+
+    } catch (error) {
+        document.getElementById("btc-price").innerText = "Fout bij laden";
+    }
+}
+
+getBTCPrice();
+setInterval(getBTCPrice, 10000);
+</script>
+
+</body>
+</html>
