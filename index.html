@@ -13,7 +13,6 @@ body {
     text-align: center;
     padding: 20px;
 }
-
 .card {
     background: #1e293b;
     padding: 20px;
@@ -21,23 +20,7 @@ body {
     margin: 15px auto;
     max-width: 400px;
 }
-
-h1 {
-    color: #f7931a;
-}
-
-.green { color: #22c55e; }
-.red { color: #ef4444; }
-
-button {
-    padding: 10px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 10px;
-    background: #f7931a;
-    color: black;
-    font-weight: bold;
-}
+h1 { color: #f7931a; }
 </style>
 
 </head>
@@ -45,168 +28,59 @@ button {
 
 <h1>🚀 Crypto Dashboard</h1>
 
-<div class="card">
-<h2>💰 Portfolio waarde</h2>
-<div id="total">...</div>
-</div>
-
-<div class="card">
-<h2>📊 BTC prijs</h2>
-<div id="btc">...</div>
-</div>
-
-<div class="card">
-<h2>📊 SOL prijs</h2>
-<div id="sol">...</div>
-</div>
-
-<div class="card">
-<h2>📊 AKT prijs</h2>
-<div id="akt">...</div>
-</div>
-
-<div class="card">
-<h2>📊 RIO prijs</h2>
-<div id="rio">...</div>
-</div>
-
-<div class="card">
-<h2>📊 ATOM prijs</h2>
-<div id="atom">...</div>
-</div>
-
-<div class="card">
-<h2>📊 INJ prijs</h2>
-<div id="inj">...</div>
-</div>
-
-<div class="card">
-<h2>💵 USDC</h2>
-<div id="usdc">...</div>
-</div>
-
-<div class="card">
-<h2>📊 Verdeling</h2>
-<div id="allocation"></div>
-</div>
-
-<div class="card">
-<h2>💰 Winst</h2>
-<div id="profit"></div>
-</div>
-
-<div class="card">
-<h2>🔔 Alerts</h2>
-<div id="alerts"></div>
-</div>
-
-<div class="card">
-<h2>🤖 AI Advies</h2>
-<div id="ai"></div>
-</div>
-
-<button onclick="load()">🔄 Refresh</button>
+<div class="card"><div id="total">Loading...</div></div>
+<div class="card"><div id="btc"></div></div>
+<div class="card"><div id="sol"></div></div>
+<div class="card"><div id="akt"></div></div>
+<div class="card"><div id="rio"></div></div>
+<div class="card"><div id="atom"></div></div>
+<div class="card"><div id="inj"></div></div>
 
 <script>
 
-// 🔧 jouw portfolio
 let portfolio = {
     btc: 0.135,
     sol: 23,
     akt: 1400,
     rio: 13000,
     atom: 201,
-    inj: 105,
-    usdc: 0
+    inj: 105
 };
 
 async function load() {
 
-    let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol,usd-coin&vs_currencies=usd");
-    let data = await res.json();
+    try {
 
-    let prices = {
-        btc: data.bitcoin.usd,
-        sol: data.solana.usd,
-        akt: data["akash-network"].usd,
-        rio: data["realio-network"].usd,
-        atom: data.cosmos.usd,
-        inj: data["injective-protocol"].usd,
-        usdc: data["usd-coin"].usd
-    };
+        let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol&vs_currencies=usd");
+        let data = await res.json();
 
-    let values = {
-        btc: portfolio.btc * prices.btc,
-        sol: portfolio.sol * prices.sol,
-        akt: portfolio.akt * prices.akt,
-        rio: portfolio.rio * prices.rio,
-        atom: portfolio.atom * prices.atom,
-        inj: portfolio.inj * prices.inj,
-        usdc: portfolio.usdc * prices.usdc
-    };
+        let prices = {
+            btc: data.bitcoin.usd,
+            sol: data.solana.usd,
+            akt: data["akash-network"].usd,
+            rio: data["realio-network"].usd,
+            atom: data.cosmos.usd,
+            inj: data["injective-protocol"].usd
+        };
 
-    let total = Object.values(values).reduce((a,b)=>a+b,0);
+        let total = 0;
 
-    // 💰 totaal
-    document.getElementById("total").innerHTML = "$" + total.toFixed(2);
+        for (let c in portfolio) {
+            total += portfolio[c] * prices[c];
+        }
 
-    // prijzen
-    document.getElementById("btc").innerHTML = "$" + prices.btc.toFixed(2);
-    document.getElementById("sol").innerHTML = "$" + prices.sol.toFixed(2);
-    document.getElementById("akt").innerHTML = "$" + prices.akt.toFixed(4);
-    document.getElementById("rio").innerHTML = "$" + prices.rio.toFixed(4);
-    document.getElementById("atom").innerHTML = "$" + prices.atom.toFixed(2);
-    document.getElementById("inj").innerHTML = "$" + prices.inj.toFixed(2);
-    document.getElementById("usdc").innerHTML = "$" + portfolio.usdc;
+        document.getElementById("total").innerHTML = "$" + total.toFixed(2);
+        document.getElementById("btc").innerHTML = "BTC: $" + prices.btc;
+        document.getElementById("sol").innerHTML = "SOL: $" + prices.sol;
+        document.getElementById("akt").innerHTML = "AKT: $" + prices.akt;
+        document.getElementById("rio").innerHTML = "RIO: $" + prices.rio;
+        document.getElementById("atom").innerHTML = "ATOM: $" + prices.atom;
+        document.getElementById("inj").innerHTML = "INJ: $" + prices.inj;
 
-    // 📊 verdeling
-    let allocation = "";
-    for (let c in values) {
-        let pct = ((values[c] / total) * 100).toFixed(1);
-        allocation += c.toUpperCase() + ": " + pct + "%<br>";
+    } catch (e) {
+        document.body.innerHTML = "❌ Fout in script";
+        console.error(e);
     }
-    document.getElementById("allocation").innerHTML = allocation;
-
-    // 💰 winst
-    let start = 15000; // pas aan!
-    let profit = total - start;
-
-    let profitText = "$" + profit.toFixed(0);
-    document.getElementById("profit").innerHTML =
-        profit >= 0 ? "<span class='green'>" + profitText + "</span>"
-                    : "<span class='red'>" + profitText + "</span>";
-
-    // 🔔 alerts
-    let alerts = "";
-
-    if (prices.btc < 60000) {
-        alerts += "🟢 BTC laag → kopen<br>";
-    }
-
-    let btcPct = (values.btc / total) * 100;
-
-    if (btcPct > 70) {
-        alerts += "💰 BTC hoog → winst nemen<br>";
-    }
-
-    if (alerts === "") {
-        alerts = "⏳ Geen alerts";
-    }
-
-    document.getElementById("alerts").innerHTML = alerts;
-
-    // 🤖 AI advies
-    let ai = "";
-
-    if (btcPct < 50) {
-        ai = "🟢 Meer BTC kopen";
-    } else if (btcPct > 70) {
-        ai = "💰 Winst nemen → USDC";
-    } else {
-        ai = "⏳ Goed in balans";
-    }
-
-    document.getElementById("ai").innerHTML = ai;
 
 }
 
@@ -216,3 +90,4 @@ load();
 
 </body>
 </html>
+        
