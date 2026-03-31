@@ -1,65 +1,169 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <title>BTC Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: white;
-            text-align: center;
-            padding-top: 100px;
-        }
-        .container {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 15px;
-            display: inline-block;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        h1 {
-            color: #f7931a;
-        }
-        .price {
-            font-size: 40px;
-            margin: 20px 0;
-        }
-        .update {
-            font-size: 14px;
-            color: #94a3b8;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Dashboard</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 15px;
+    margin: 15px auto;
+    max-width: 400px;
+}
+
+h1 {
+    color: #f7931a;
+}
+
+.green { color: #22c55e; }
+.red { color: #ef4444; }
+
+button {
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: #f7931a;
+    color: black;
+    font-weight: bold;
+}
+</style>
+
 </head>
 <body>
 
-<div class="container">
-    <h1>₿ Bitcoin Dashboard</h1>
-    <div class="price" id="btc-price">Laden...</div>
-    <div class="update" id="update-time"></div>
+<h1>🚀 Crypto Dashboard</h1>
+
+<div class="card">
+<h2>💰 Portfolio waarde</h2>
+<div id="total">...</div>
 </div>
 
+<div class="card">
+<h2>📊 BTC prijs</h2>
+<div id="btc">...</div>
+</div>
+
+<div class="card">
+<h2>📊 SOL prijs</h2>
+<div id="sol">...</div>
+</div>
+
+<div class="card">
+<h2>📊 AKT prijs</h2>
+<div id="akt">...</div>
+</div>
+
+<div class="card">
+<h2>📊 RIO prijs</h2>
+<div id="rio">...</div>
+</div>
+
+<div class="card">
+<h2>📊 ATOM prijs</h2>
+<div id="atom">...</div>
+</div>
+
+<div class="card">
+<h2>📊 INJ prijs</h2>
+<div id="inj">...</div>
+</div>
+
+<div class="card">
+<h2>💵 USDC (afroming)</h2>
+<div id="usdc">...</div>
+</div>
+
+<div class="card">
+<h2>🤖 AI Advies</h2>
+<div id="ai"></div>
+</div>
+
+<button onclick="load()">🔄 Refresh</button>
+
 <script>
-async function getBTCPrice() {
-    try {
-        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur");
-        const data = await response.json();
 
-        const price = data.bitcoin.eur;
+// jouw portfolio (BNB verwijderd)
+let portfolio = {
+    btc: 0.135,
+    sol: 23,
+    akt: 1400,
+    rio: 13000,
+    atom: 201,
+    inj: 105,
+    usdc: 0
+};
 
-        document.getElementById("btc-price").innerText = "€ " + price.toLocaleString();
+async function load() {
 
-        const now = new Date();
-        document.getElementById("update-time").innerText =
-            "Laatste update: " + now.toLocaleTimeString();
+    let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol,usd-coin&vs_currencies=usd");
 
-    } catch (error) {
-        document.getElementById("btc-price").innerText = "Fout bij laden";
+    let data = await res.json();
+
+    let prices = {
+        btc: data.bitcoin.usd,
+        sol: data.solana.usd,
+        akt: data["akash-network"].usd,
+        rio: data["realio-network"].usd,
+        atom: data.cosmos.usd,
+        inj: data["injective-protocol"].usd,
+        usdc: data["usd-coin"].usd
+    };
+
+    let values = {
+        btc: portfolio.btc * prices.btc,
+        sol: portfolio.sol * prices.sol,
+        akt: portfolio.akt * prices.akt,
+        rio: portfolio.rio * prices.rio,
+        atom: portfolio.atom * prices.atom,
+        inj: portfolio.inj * prices.inj,
+        usdc: portfolio.usdc * prices.usdc
+    };
+
+    let total = Object.values(values).reduce((a,b)=>a+b,0);
+
+    document.getElementById("total").innerHTML = "$" + total.toFixed(2);
+
+    document.getElementById("btc").innerHTML = "$" + prices.btc;
+    document.getElementById("sol").innerHTML = "$" + prices.sol;
+    document.getElementById("akt").innerHTML = "$" + prices.akt;
+    document.getElementById("rio").innerHTML = "$" + prices.rio;
+    document.getElementById("atom").innerHTML = "$" + prices.atom;
+    document.getElementById("inj").innerHTML = "$" + prices.inj;
+    document.getElementById("usdc").innerHTML = "$" + portfolio.usdc;
+
+    // 🤖 simpele AI
+    let ai = "";
+
+    let btcPct = (values.btc / total) * 100;
+
+    if (btcPct < 50) {
+        ai = "🟢 Meer BTC kopen";
     }
+    else if (btcPct > 70) {
+        ai = "💰 Winst nemen → USDC";
+    }
+    else {
+        ai = "⏳ Goed in balans";
+    }
+
+    document.getElementById("ai").innerHTML = ai;
+
 }
 
-getBTCPrice();
-setInterval(getBTCPrice, 10000);
+load();
+
 </script>
 
 </body>
