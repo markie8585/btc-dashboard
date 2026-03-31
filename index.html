@@ -182,3 +182,43 @@ load();
 
 </body>
 </html>
+document.getElementById("ai").innerHTML = ai;
+
+
+// 👇 HIER PLAKKEN 👇
+
+// 📊 verdeling
+let allocation = "";
+
+for (let c in values) {
+    let pct = ((values[c] / total) * 100).toFixed(1);
+    allocation += c.toUpperCase() + ": " + pct + "%<br>";
+}
+
+document.getElementById("allocation").innerHTML = allocation;
+
+
+// 💰 winst
+let start = 15000;
+let profit = total - start;
+
+document.getElementById("profit").innerHTML =
+    "$" + profit.toFixed(0);
+
+
+// 🔔 alerts
+let alerts = "";
+
+if (prices.btc < 60000) {
+    alerts += "🟢 BTC laag → kopen<br>";
+}
+
+if ((values.btc / total) * 100 > 70) {
+    alerts += "💰 BTC hoog → winst nemen<br>";
+}
+
+if (alerts === "") {
+    alerts = "⏳ Geen alerts";
+}
+
+document.getElementById("alerts").innerHTML = alerts;
