@@ -1,5 +1,115 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Dashboard</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 15px;
+    margin: 15px auto;
+    max-width: 400px;
+}
+
+h1 {
+    color: #f7931a;
+}
+
+.green { color: #22c55e; }
+.red { color: #ef4444; }
+
+button {
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: #f7931a;
+    color: black;
+    font-weight: bold;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🚀 Crypto Dashboard</h1>
+
+<div class="card">
+<h2>💰 Portfolio waarde</h2>
+<div id="total">...</div>
+</div>
+
+<div class="card">
+<h2>📊 BTC prijs</h2>
+<div id="btc">...</div>
+</div>
+
+<div class="card">
+<h2>📊 SOL prijs</h2>
+<div id="sol">...</div>
+</div>
+
+<div class="card">
+<h2>📊 AKT prijs</h2>
+<div id="akt">...</div>
+</div>
+
+<div class="card">
+<h2>📊 RIO prijs</h2>
+<div id="rio">...</div>
+</div>
+
+<div class="card">
+<h2>📊 ATOM prijs</h2>
+<div id="atom">...</div>
+</div>
+
+<div class="card">
+<h2>📊 INJ prijs</h2>
+<div id="inj">...</div>
+</div>
+
+<div class="card">
+<h2>💵 USDC</h2>
+<div id="usdc">...</div>
+</div>
+
+<div class="card">
+<h2>📊 Verdeling</h2>
+<div id="allocation"></div>
+</div>
+
+<div class="card">
+<h2>💰 Winst</h2>
+<div id="profit"></div>
+</div>
+
+<div class="card">
+<h2>🔔 Alerts</h2>
+<div id="alerts"></div>
+</div>
+
+<div class="card">
+<h2>🤖 AI Advies</h2>
+<div id="ai"></div>
+</div>
+
+<button onclick="load()">🔄 Refresh</button>
+
 <script>
 
+// 🔧 jouw portfolio
 let portfolio = {
     btc: 0.135,
     sol: 23,
@@ -13,7 +123,6 @@ let portfolio = {
 async function load() {
 
     let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol,usd-coin&vs_currencies=usd");
-
     let data = await res.json();
 
     let prices = {
@@ -38,19 +147,56 @@ async function load() {
 
     let total = Object.values(values).reduce((a,b)=>a+b,0);
 
+    // 💰 totaal
     document.getElementById("total").innerHTML = "$" + total.toFixed(2);
 
-    document.getElementById("btc").innerHTML = "$" + prices.btc;
-    document.getElementById("sol").innerHTML = "$" + prices.sol;
-    document.getElementById("akt").innerHTML = "$" + prices.akt;
-    document.getElementById("rio").innerHTML = "$" + prices.rio;
-    document.getElementById("atom").innerHTML = "$" + prices.atom;
-    document.getElementById("inj").innerHTML = "$" + prices.inj;
+    // prijzen
+    document.getElementById("btc").innerHTML = "$" + prices.btc.toFixed(2);
+    document.getElementById("sol").innerHTML = "$" + prices.sol.toFixed(2);
+    document.getElementById("akt").innerHTML = "$" + prices.akt.toFixed(4);
+    document.getElementById("rio").innerHTML = "$" + prices.rio.toFixed(4);
+    document.getElementById("atom").innerHTML = "$" + prices.atom.toFixed(2);
+    document.getElementById("inj").innerHTML = "$" + prices.inj.toFixed(2);
     document.getElementById("usdc").innerHTML = "$" + portfolio.usdc;
 
-    // 🤖 AI
-    let ai = "";
+    // 📊 verdeling
+    let allocation = "";
+    for (let c in values) {
+        let pct = ((values[c] / total) * 100).toFixed(1);
+        allocation += c.toUpperCase() + ": " + pct + "%<br>";
+    }
+    document.getElementById("allocation").innerHTML = allocation;
+
+    // 💰 winst
+    let start = 15000; // pas aan!
+    let profit = total - start;
+
+    let profitText = "$" + profit.toFixed(0);
+    document.getElementById("profit").innerHTML =
+        profit >= 0 ? "<span class='green'>" + profitText + "</span>"
+                    : "<span class='red'>" + profitText + "</span>";
+
+    // 🔔 alerts
+    let alerts = "";
+
+    if (prices.btc < 60000) {
+        alerts += "🟢 BTC laag → kopen<br>";
+    }
+
     let btcPct = (values.btc / total) * 100;
+
+    if (btcPct > 70) {
+        alerts += "💰 BTC hoog → winst nemen<br>";
+    }
+
+    if (alerts === "") {
+        alerts = "⏳ Geen alerts";
+    }
+
+    document.getElementById("alerts").innerHTML = alerts;
+
+    // 🤖 AI advies
+    let ai = "";
 
     if (btcPct < 50) {
         ai = "🟢 Meer BTC kopen";
@@ -62,42 +208,11 @@ async function load() {
 
     document.getElementById("ai").innerHTML = ai;
 
-    // 📊 VERDELING
-    let allocation = "";
-
-    for (let c in values) {
-        let pct = ((values[c] / total) * 100).toFixed(1);
-        allocation += c.toUpperCase() + ": " + pct + "%<br>";
-    }
-
-    document.getElementById("allocation").innerHTML = allocation;
-
-    // 💰 WINST
-    let start = 15000;
-    let profit = total - start;
-
-    document.getElementById("profit").innerHTML =
-        "$" + profit.toFixed(0);
-
-    // 🔔 ALERTS
-    let alerts = "";
-
-    if (prices.btc < 60000) {
-        alerts += "🟢 BTC laag → kopen<br>";
-    }
-
-    if ((values.btc / total) * 100 > 70) {
-        alerts += "💰 BTC hoog → winst nemen<br>";
-    }
-
-    if (alerts === "") {
-        alerts = "⏳ Geen alerts";
-    }
-
-    document.getElementById("alerts").innerHTML = alerts;
-
 }
 
 load();
 
 </script>
+
+</body>
+</html>
