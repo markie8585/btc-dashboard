@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto App</title>
+<title>Crypto App PRO</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -16,14 +16,8 @@ body {
 }
 
 /* SCREENS */
-.screen {
-    display: none;
-    padding: 20px;
-}
-
-.active {
-    display: block;
-}
+.screen { display:none; padding:20px; }
+.active { display:block; }
 
 /* HEADER */
 .header {
@@ -41,13 +35,26 @@ body {
     margin-bottom: 15px;
 }
 
-/* VALUE */
-.big {
-    font-size: 32px;
-    font-weight: bold;
+/* INPUT */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 10px;
+    border: none;
 }
 
-/* BOTTOM NAV */
+/* BUTTON */
+button {
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    border-radius: 10px;
+    border: none;
+    background: #f7931a;
+}
+
+/* NAV */
 .nav {
     position: fixed;
     bottom: 0;
@@ -56,18 +63,11 @@ body {
     display: flex;
     justify-content: space-around;
     padding: 10px 0;
-    border-top: 1px solid #1e293b;
-}
-
-.nav button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 14px;
 }
 
 .green { color:#22c55e; }
 .red { color:#ef4444; }
+.big { font-size:28px; }
 
 </style>
 </head>
@@ -79,25 +79,20 @@ body {
     <div class="header">🚀 Dashboard</div>
 
     <div class="card">
-        <div>Portfolio</div>
+        Portfolio
         <div id="total" class="big"></div>
     </div>
 
     <div class="card">
-        <div>Winst</div>
+        Winst
         <div id="profit"></div>
     </div>
 
-    <div class="card">
-        <canvas id="pie"></canvas>
-    </div>
+    <div class="card"><canvas id="pie"></canvas></div>
+    <div class="card"><canvas id="btcChart"></canvas></div>
 
     <div class="card">
-        <canvas id="btcChart"></canvas>
-    </div>
-
-    <div class="card">
-        <div>🤖 AI</div>
+        🤖 AI
         <div id="ai"></div>
     </div>
 </div>
@@ -105,7 +100,10 @@ body {
 <!-- PORTFOLIO -->
 <div id="portfolio" class="screen">
     <div class="header">💼 Portfolio</div>
-    <div id="coins"></div>
+
+    <div id="inputs"></div>
+
+    <button onclick="savePortfolio()">💾 Opslaan</button>
 </div>
 
 <!-- ALERTS -->
@@ -117,8 +115,10 @@ body {
 <!-- SETTINGS -->
 <div id="settings" class="screen">
     <div class="header">⚙️ Settings</div>
+
     <div class="card">
-        Startkapitaal: <input id="startInput" value="15000">
+        Startkapitaal
+        <input id="startInput" value="15000">
     </div>
 </div>
 
@@ -132,23 +132,37 @@ body {
 
 <script>
 
-function show(id) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+function show(id){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
-let portfolio = {
-    btc: 0.135,
-    sol: 23,
-    akt: 1400,
-    rio: 13000,
-    atom: 201,
-    inj: 105
+// 💾 load portfolio
+let portfolio = JSON.parse(localStorage.getItem("portfolio")) || {
+    btc:0.135, sol:23, akt:1400, rio:13000, atom:201, inj:105
 };
+
+// inputs maken
+function renderInputs(){
+    let html="";
+    for(let c in portfolio){
+        html += c.toUpperCase()+"<input id='"+c+"' value='"+portfolio[c]+"'>";
+    }
+    document.getElementById("inputs").innerHTML = html;
+}
+renderInputs();
+
+function savePortfolio(){
+    for(let c in portfolio){
+        portfolio[c] = parseFloat(document.getElementById(c).value);
+    }
+    localStorage.setItem("portfolio", JSON.stringify(portfolio));
+    alert("Opgeslagen!");
+}
 
 let pieChart, btcChart;
 
-async function load() {
+async function load(){
 
     let start = document.getElementById("startInput").value;
 
@@ -156,83 +170,72 @@ async function load() {
     let data = await res.json();
 
     let prices = {
-        btc: data.bitcoin.usd,
-        sol: data.solana.usd,
-        akt: data["akash-network"].usd,
-        rio: data["realio-network"].usd,
-        atom: data.cosmos.usd,
-        inj: data["injective-protocol"].usd
+        btc:data.bitcoin.usd,
+        sol:data.solana.usd,
+        akt:data["akash-network"].usd,
+        rio:data["realio-network"].usd,
+        atom:data.cosmos.usd,
+        inj:data["injective-protocol"].usd
     };
 
-    let values = {};
-    let total = 0;
-    let coinHTML = "";
+    let values={}, total=0;
 
-    for (let c in portfolio) {
-        values[c] = portfolio[c] * prices[c];
-        total += values[c];
-
-        coinHTML += c.toUpperCase() + " $" + prices[c] + "<br>";
+    for(let c in portfolio){
+        values[c]=portfolio[c]*prices[c];
+        total+=values[c];
     }
 
-    document.getElementById("coins").innerHTML = coinHTML;
+    document.getElementById("total").innerHTML="$"+total.toFixed(0);
 
-    document.getElementById("total").innerHTML = "$" + total.toFixed(0);
-
-    let profit = total - start;
+    let profit = total-start;
 
     document.getElementById("profit").innerHTML =
-        profit >= 0 ? "<span class='green'>$"+profit.toFixed(0)+"</span>"
-                    : "<span class='red'>$"+profit.toFixed(0)+"</span>";
+        profit>=0?"<span class='green'>$"+profit.toFixed(0)+"</span>"
+                  :"<span class='red'>$"+profit.toFixed(0)+"</span>";
 
-    let labels = [];
-    let chartData = [];
+    let labels=[], chartData=[];
 
-    for (let c in values) {
+    for(let c in values){
         labels.push(c.toUpperCase());
         chartData.push(values[c]);
     }
 
     if(pieChart) pieChart.destroy();
-
     pieChart = new Chart(document.getElementById("pie"), {
-        type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: chartData }] }
+        type:'doughnut',
+        data:{labels:labels,datasets:[{data:chartData}]}
     });
 
     let hist = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7");
     let histData = await hist.json();
 
-    let pricesHist = histData.prices.map(p => p[1]);
+    let pricesHist = histData.prices.map(p=>p[1]);
 
     if(btcChart) btcChart.destroy();
-
     btcChart = new Chart(document.getElementById("btcChart"), {
-        type: 'line',
-        data: { labels: pricesHist.map((_,i)=>i), datasets: [{ data: pricesHist }] }
+        type:'line',
+        data:{labels:pricesHist.map((_,i)=>i),datasets:[{data:pricesHist}]}
     });
 
-    let alerts = "";
-    let btcPct = (values.btc / total) * 100;
+    let alerts="";
+    let btcPct=(values.btc/total)*100;
 
-    if (prices.btc < 60000) alerts += "🟢 BUY BTC<br>";
-    if (btcPct > 70) alerts += "💰 TAKE PROFIT<br>";
+    if(prices.btc<60000) alerts+="🟢 BUY BTC<br>";
+    if(btcPct>70) alerts+="💰 TAKE PROFIT<br>";
+    if(alerts==="") alerts="⏳ STABLE";
 
-    if (alerts === "") alerts = "⏳ STABLE";
+    document.getElementById("alerts").innerHTML=alerts;
 
-    document.getElementById("alerts").innerHTML = alerts;
+    let ai="";
+    if(btcPct<50) ai="BUY MODE";
+    else if(btcPct>70) ai="SELL MODE";
+    else ai="HOLD";
 
-    let ai = "";
-    if (btcPct < 50) ai = "BUY";
-    else if (btcPct > 70) ai = "SELL";
-    else ai = "HOLD";
-
-    document.getElementById("ai").innerHTML = ai;
-
+    document.getElementById("ai").innerHTML=ai;
 }
 
 load();
-setInterval(load, 60000);
+setInterval(load,60000);
 
 </script>
 
