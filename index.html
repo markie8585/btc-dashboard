@@ -3,135 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Dashboard PRO</title>
+<title>Crypto App</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-* {
+body {
+    font-family: -apple-system, sans-serif;
+    background: #020617;
+    color: white;
     margin: 0;
-    padding: 0;
-    box-sizing: border-box;
 }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg,#0f172a,#020617,#020617);
-    color: white;
+/* SCREENS */
+.screen {
+    display: none;
     padding: 20px;
+}
+
+.active {
+    display: block;
 }
 
 /* HEADER */
 .header {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: bold;
     margin-bottom: 20px;
     color: #f7931a;
 }
 
-/* TOTAL CARD */
-.total-card {
-    background: rgba(30,41,59,0.6);
-    backdrop-filter: blur(10px);
-    padding: 25px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-}
-
-.total-value {
-    font-size: 36px;
-    font-weight: bold;
-}
-
-/* GRID */
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
 /* CARD */
 .card {
-    background: rgba(30,41,59,0.5);
-    backdrop-filter: blur(10px);
-    padding: 15px;
+    background: rgba(30,41,59,0.6);
+    padding: 20px;
     border-radius: 15px;
+    margin-bottom: 15px;
 }
 
-.title {
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-.value {
-    font-size: 18px;
+/* VALUE */
+.big {
+    font-size: 32px;
     font-weight: bold;
 }
 
-/* BIG CARD */
-.big-card {
-    background: rgba(30,41,59,0.5);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 20px;
-    margin-top: 20px;
+/* BOTTOM NAV */
+.nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #020617;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 1px solid #1e293b;
 }
 
-/* COLORS */
+.nav button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+}
+
 .green { color:#22c55e; }
 .red { color:#ef4444; }
 
-/* AI */
-.ai {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header">🚀 Crypto Dashboard</div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="screen active">
+    <div class="header">🚀 Dashboard</div>
 
-<div class="total-card">
-    <div class="title">Portfolio</div>
-    <div class="total-value" id="total"></div>
+    <div class="card">
+        <div>Portfolio</div>
+        <div id="total" class="big"></div>
+    </div>
+
+    <div class="card">
+        <div>Winst</div>
+        <div id="profit"></div>
+    </div>
+
+    <div class="card">
+        <canvas id="pie"></canvas>
+    </div>
+
+    <div class="card">
+        <canvas id="btcChart"></canvas>
+    </div>
+
+    <div class="card">
+        <div>🤖 AI</div>
+        <div id="ai"></div>
+    </div>
 </div>
 
-<div class="grid">
-    <div class="card"><div class="title">BTC</div><div class="value" id="btc"></div></div>
-    <div class="card"><div class="title">SOL</div><div class="value" id="sol"></div></div>
-    <div class="card"><div class="title">AKT</div><div class="value" id="akt"></div></div>
-    <div class="card"><div class="title">RIO</div><div class="value" id="rio"></div></div>
-    <div class="card"><div class="title">ATOM</div><div class="value" id="atom"></div></div>
-    <div class="card"><div class="title">INJ</div><div class="value" id="inj"></div></div>
+<!-- PORTFOLIO -->
+<div id="portfolio" class="screen">
+    <div class="header">💼 Portfolio</div>
+    <div id="coins"></div>
 </div>
 
-<div class="big-card">
-    <div class="title">💰 Winst</div>
-    <div class="value" id="profit"></div>
-</div>
-
-<div class="big-card">
-    <canvas id="pie"></canvas>
-</div>
-
-<div class="big-card">
-    <canvas id="btcChart"></canvas>
-</div>
-
-<div class="big-card">
-    <div class="title">🔔 Alerts</div>
+<!-- ALERTS -->
+<div id="alertsScreen" class="screen">
+    <div class="header">🔔 Alerts</div>
     <div id="alerts"></div>
 </div>
 
-<div class="big-card">
-    <div class="title">🤖 AI</div>
-    <div class="ai" id="ai"></div>
+<!-- SETTINGS -->
+<div id="settings" class="screen">
+    <div class="header">⚙️ Settings</div>
+    <div class="card">
+        Startkapitaal: <input id="startInput" value="15000">
+    </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+    <button onclick="show('dashboard')">Home</button>
+    <button onclick="show('portfolio')">Portfolio</button>
+    <button onclick="show('alertsScreen')">Alerts</button>
+    <button onclick="show('settings')">Settings</button>
 </div>
 
 <script>
+
+function show(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
 
 let portfolio = {
     btc: 0.135,
@@ -145,6 +149,8 @@ let portfolio = {
 let pieChart, btcChart;
 
 async function load() {
+
+    let start = document.getElementById("startInput").value;
 
     let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol&vs_currencies=usd");
     let data = await res.json();
@@ -160,22 +166,19 @@ async function load() {
 
     let values = {};
     let total = 0;
+    let coinHTML = "";
 
     for (let c in portfolio) {
         values[c] = portfolio[c] * prices[c];
         total += values[c];
+
+        coinHTML += c.toUpperCase() + " $" + prices[c] + "<br>";
     }
+
+    document.getElementById("coins").innerHTML = coinHTML;
 
     document.getElementById("total").innerHTML = "$" + total.toFixed(0);
 
-    document.getElementById("btc").innerHTML = "$" + prices.btc.toFixed(0);
-    document.getElementById("sol").innerHTML = "$" + prices.sol.toFixed(2);
-    document.getElementById("akt").innerHTML = "$" + prices.akt.toFixed(3);
-    document.getElementById("rio").innerHTML = "$" + prices.rio.toFixed(4);
-    document.getElementById("atom").innerHTML = "$" + prices.atom.toFixed(2);
-    document.getElementById("inj").innerHTML = "$" + prices.inj.toFixed(2);
-
-    let start = 15000;
     let profit = total - start;
 
     document.getElementById("profit").innerHTML =
@@ -194,10 +197,7 @@ async function load() {
 
     pieChart = new Chart(document.getElementById("pie"), {
         type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{ data: chartData }]
-        }
+        data: { labels: labels, datasets: [{ data: chartData }] }
     });
 
     let hist = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7");
@@ -209,10 +209,7 @@ async function load() {
 
     btcChart = new Chart(document.getElementById("btcChart"), {
         type: 'line',
-        data: {
-            labels: pricesHist.map((_,i)=>i),
-            datasets: [{ data: pricesHist }]
-        }
+        data: { labels: pricesHist.map((_,i)=>i), datasets: [{ data: pricesHist }] }
     });
 
     let alerts = "";
@@ -226,8 +223,8 @@ async function load() {
     document.getElementById("alerts").innerHTML = alerts;
 
     let ai = "";
-    if (btcPct < 50) ai = "BUY MODE";
-    else if (btcPct > 70) ai = "SELL MODE";
+    if (btcPct < 50) ai = "BUY";
+    else if (btcPct > 70) ai = "SELL";
     else ai = "HOLD";
 
     document.getElementById("ai").innerHTML = ai;
