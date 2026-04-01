@@ -3,38 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Dashboard</title>
+<title>Crypto Dashboard PRO</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
     font-family: Arial;
-    background: #0f172a;
+    background: linear-gradient(135deg,#0f172a,#020617);
     color: white;
     text-align: center;
     padding: 20px;
 }
+
 .card {
     background: #1e293b;
     padding: 20px;
     border-radius: 15px;
     margin: 15px auto;
-    max-width: 400px;
+    max-width: 420px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
-h1 { color: #f7931a; }
-</style>
 
+h1 { color: #f7931a; }
+
+.green { color:#22c55e; }
+.red { color:#ef4444; }
+
+canvas { margin-top:20px; }
+
+</style>
 </head>
 <body>
 
-<h1>🚀 Crypto Dashboard</h1>
+<h1>🚀 Crypto Dashboard PRO</h1>
 
-<div class="card"><div id="total">Loading...</div></div>
-<div class="card"><div id="btc"></div></div>
-<div class="card"><div id="sol"></div></div>
-<div class="card"><div id="akt"></div></div>
-<div class="card"><div id="rio"></div></div>
-<div class="card"><div id="atom"></div></div>
-<div class="card"><div id="inj"></div></div>
+<div class="card">
+<h2>💰 Totaal</h2>
+<div id="total"></div>
+</div>
+
+<div class="card">
+<h2>💰 Winst</h2>
+<div id="profit"></div>
+</div>
+
+<div class="card">
+<h2>📊 Verdeling</h2>
+<canvas id="pie"></canvas>
+<div id="allocation"></div>
+</div>
+
+<div class="card">
+<h2>📈 BTC Trend</h2>
+<canvas id="btcChart"></canvas>
+</div>
+
+<div class="card">
+<h2>🔔 Alerts</h2>
+<div id="alerts"></div>
+</div>
+
+<div class="card">
+<h2>🤖 AI</h2>
+<div id="ai"></div>
+</div>
 
 <script>
 
@@ -44,50 +77,116 @@ let portfolio = {
     akt: 1400,
     rio: 13000,
     atom: 201,
-    inj: 105
+    inj: 105,
+    usdc: 0
 };
+
+let pieChart, btcChart;
 
 async function load() {
 
-    try {
+    let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol,usd-coin&vs_currencies=usd");
+    let data = await res.json();
 
-        let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol&vs_currencies=usd");
-        let data = await res.json();
+    let prices = {
+        btc: data.bitcoin.usd,
+        sol: data.solana.usd,
+        akt: data["akash-network"].usd,
+        rio: data["realio-network"].usd,
+        atom: data.cosmos.usd,
+        inj: data["injective-protocol"].usd,
+        usdc: data["usd-coin"].usd
+    };
 
-        let prices = {
-            btc: data.bitcoin.usd,
-            sol: data.solana.usd,
-            akt: data["akash-network"].usd,
-            rio: data["realio-network"].usd,
-            atom: data.cosmos.usd,
-            inj: data["injective-protocol"].usd
-        };
+    let values = {};
+    let total = 0;
 
-        let total = 0;
-
-        for (let c in portfolio) {
-            total += portfolio[c] * prices[c];
-        }
-
-        document.getElementById("total").innerHTML = "$" + total.toFixed(2);
-        document.getElementById("btc").innerHTML = "BTC: $" + prices.btc;
-        document.getElementById("sol").innerHTML = "SOL: $" + prices.sol;
-        document.getElementById("akt").innerHTML = "AKT: $" + prices.akt;
-        document.getElementById("rio").innerHTML = "RIO: $" + prices.rio;
-        document.getElementById("atom").innerHTML = "ATOM: $" + prices.atom;
-        document.getElementById("inj").innerHTML = "INJ: $" + prices.inj;
-
-    } catch (e) {
-        document.body.innerHTML = "❌ Fout in script";
-        console.error(e);
+    for (let c in portfolio) {
+        values[c] = portfolio[c] * prices[c];
+        total += values[c];
     }
+
+    document.getElementById("total").innerHTML = "$" + total.toFixed(0);
+
+    // 💰 winst
+    let start = 15000;
+    let profit = total - start;
+
+    document.getElementById("profit").innerHTML =
+        profit >= 0 ? "<span class='green'>$"+profit.toFixed(0)+"</span>"
+                    : "<span class='red'>$"+profit.toFixed(0)+"</span>";
+
+    // 📊 verdeling tekst
+    let allocation = "";
+    let labels = [];
+    let chartData = [];
+
+    for (let c in values) {
+        let pct = ((values[c]/total)*100).toFixed(1);
+        allocation += c.toUpperCase()+" "+pct+"%<br>";
+        labels.push(c.toUpperCase());
+        chartData.push(values[c]);
+    }
+
+    document.getElementById("allocation").innerHTML = allocation;
+
+    // 📊 PIE CHART
+    if(pieChart) pieChart.destroy();
+
+    pieChart = new Chart(document.getElementById("pie"), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData
+            }]
+        }
+    });
+
+    // 🔔 alerts
+    let alerts = "";
+    let btcPct = (values.btc / total) * 100;
+
+    if (prices.btc < 60000) alerts += "🟢 BTC kopen<br>";
+    if (btcPct > 70) alerts += "💰 winst nemen<br>";
+
+    if (alerts === "") alerts = "⏳ rustig";
+
+    document.getElementById("alerts").innerHTML = alerts;
+
+    // 🤖 AI
+    let ai = "";
+    if (btcPct < 50) ai = "BUY BTC";
+    else if (btcPct > 70) ai = "SELL BTC → USDC";
+    else ai = "HOLD";
+
+    document.getElementById("ai").innerHTML = ai;
+
+    // 📈 BTC chart
+    let hist = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7");
+    let histData = await hist.json();
+
+    let pricesHist = histData.prices.map(p => p[1]);
+
+    if(btcChart) btcChart.destroy();
+
+    btcChart = new Chart(document.getElementById("btcChart"), {
+        type: 'line',
+        data: {
+            labels: pricesHist.map((_,i)=>i),
+            datasets: [{
+                label: "BTC",
+                data: pricesHist
+            }]
+        }
+    });
 
 }
 
 load();
+setInterval(load, 60000);
 
 </script>
 
 </body>
 </html>
-        
