@@ -8,65 +8,127 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial;
-    background: linear-gradient(135deg,#0f172a,#020617);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg,#0f172a,#020617,#020617);
     color: white;
-    text-align: center;
     padding: 20px;
 }
 
+/* HEADER */
+.header {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #f7931a;
+}
+
+/* TOTAL CARD */
+.total-card {
+    background: rgba(30,41,59,0.6);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+}
+
+.total-value {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+/* GRID */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* CARD */
 .card {
-    background: #1e293b;
-    padding: 20px;
+    background: rgba(30,41,59,0.5);
+    backdrop-filter: blur(10px);
+    padding: 15px;
     border-radius: 15px;
-    margin: 15px auto;
-    max-width: 420px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
 
-h1 { color: #f7931a; }
+.title {
+    font-size: 12px;
+    opacity: 0.7;
+}
 
+.value {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* BIG CARD */
+.big-card {
+    background: rgba(30,41,59,0.5);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+}
+
+/* COLORS */
 .green { color:#22c55e; }
 .red { color:#ef4444; }
 
-canvas { margin-top:20px; }
-
+/* AI */
+.ai {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+}
 </style>
 </head>
+
 <body>
 
-<h1>🚀 Crypto Dashboard PRO</h1>
+<div class="header">🚀 Crypto Dashboard</div>
 
-<div class="card">
-<h2>💰 Totaal</h2>
-<div id="total"></div>
+<div class="total-card">
+    <div class="title">Portfolio</div>
+    <div class="total-value" id="total"></div>
 </div>
 
-<div class="card">
-<h2>💰 Winst</h2>
-<div id="profit"></div>
+<div class="grid">
+    <div class="card"><div class="title">BTC</div><div class="value" id="btc"></div></div>
+    <div class="card"><div class="title">SOL</div><div class="value" id="sol"></div></div>
+    <div class="card"><div class="title">AKT</div><div class="value" id="akt"></div></div>
+    <div class="card"><div class="title">RIO</div><div class="value" id="rio"></div></div>
+    <div class="card"><div class="title">ATOM</div><div class="value" id="atom"></div></div>
+    <div class="card"><div class="title">INJ</div><div class="value" id="inj"></div></div>
 </div>
 
-<div class="card">
-<h2>📊 Verdeling</h2>
-<canvas id="pie"></canvas>
-<div id="allocation"></div>
+<div class="big-card">
+    <div class="title">💰 Winst</div>
+    <div class="value" id="profit"></div>
 </div>
 
-<div class="card">
-<h2>📈 BTC Trend</h2>
-<canvas id="btcChart"></canvas>
+<div class="big-card">
+    <canvas id="pie"></canvas>
 </div>
 
-<div class="card">
-<h2>🔔 Alerts</h2>
-<div id="alerts"></div>
+<div class="big-card">
+    <canvas id="btcChart"></canvas>
 </div>
 
-<div class="card">
-<h2>🤖 AI</h2>
-<div id="ai"></div>
+<div class="big-card">
+    <div class="title">🔔 Alerts</div>
+    <div id="alerts"></div>
+</div>
+
+<div class="big-card">
+    <div class="title">🤖 AI</div>
+    <div class="ai" id="ai"></div>
 </div>
 
 <script>
@@ -77,15 +139,14 @@ let portfolio = {
     akt: 1400,
     rio: 13000,
     atom: 201,
-    inj: 105,
-    usdc: 0
+    inj: 105
 };
 
 let pieChart, btcChart;
 
 async function load() {
 
-    let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol,usd-coin&vs_currencies=usd");
+    let res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,akash-network,realio-network,cosmos,injective-protocol&vs_currencies=usd");
     let data = await res.json();
 
     let prices = {
@@ -94,8 +155,7 @@ async function load() {
         akt: data["akash-network"].usd,
         rio: data["realio-network"].usd,
         atom: data.cosmos.usd,
-        inj: data["injective-protocol"].usd,
-        usdc: data["usd-coin"].usd
+        inj: data["injective-protocol"].usd
     };
 
     let values = {};
@@ -108,7 +168,13 @@ async function load() {
 
     document.getElementById("total").innerHTML = "$" + total.toFixed(0);
 
-    // 💰 winst
+    document.getElementById("btc").innerHTML = "$" + prices.btc.toFixed(0);
+    document.getElementById("sol").innerHTML = "$" + prices.sol.toFixed(2);
+    document.getElementById("akt").innerHTML = "$" + prices.akt.toFixed(3);
+    document.getElementById("rio").innerHTML = "$" + prices.rio.toFixed(4);
+    document.getElementById("atom").innerHTML = "$" + prices.atom.toFixed(2);
+    document.getElementById("inj").innerHTML = "$" + prices.inj.toFixed(2);
+
     let start = 15000;
     let profit = total - start;
 
@@ -116,53 +182,24 @@ async function load() {
         profit >= 0 ? "<span class='green'>$"+profit.toFixed(0)+"</span>"
                     : "<span class='red'>$"+profit.toFixed(0)+"</span>";
 
-    // 📊 verdeling tekst
-    let allocation = "";
     let labels = [];
     let chartData = [];
 
     for (let c in values) {
-        let pct = ((values[c]/total)*100).toFixed(1);
-        allocation += c.toUpperCase()+" "+pct+"%<br>";
         labels.push(c.toUpperCase());
         chartData.push(values[c]);
     }
 
-    document.getElementById("allocation").innerHTML = allocation;
-
-    // 📊 PIE CHART
     if(pieChart) pieChart.destroy();
 
     pieChart = new Chart(document.getElementById("pie"), {
         type: 'doughnut',
         data: {
             labels: labels,
-            datasets: [{
-                data: chartData
-            }]
+            datasets: [{ data: chartData }]
         }
     });
 
-    // 🔔 alerts
-    let alerts = "";
-    let btcPct = (values.btc / total) * 100;
-
-    if (prices.btc < 60000) alerts += "🟢 BTC kopen<br>";
-    if (btcPct > 70) alerts += "💰 winst nemen<br>";
-
-    if (alerts === "") alerts = "⏳ rustig";
-
-    document.getElementById("alerts").innerHTML = alerts;
-
-    // 🤖 AI
-    let ai = "";
-    if (btcPct < 50) ai = "BUY BTC";
-    else if (btcPct > 70) ai = "SELL BTC → USDC";
-    else ai = "HOLD";
-
-    document.getElementById("ai").innerHTML = ai;
-
-    // 📈 BTC chart
     let hist = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7");
     let histData = await hist.json();
 
@@ -174,12 +211,26 @@ async function load() {
         type: 'line',
         data: {
             labels: pricesHist.map((_,i)=>i),
-            datasets: [{
-                label: "BTC",
-                data: pricesHist
-            }]
+            datasets: [{ data: pricesHist }]
         }
     });
+
+    let alerts = "";
+    let btcPct = (values.btc / total) * 100;
+
+    if (prices.btc < 60000) alerts += "🟢 BUY BTC<br>";
+    if (btcPct > 70) alerts += "💰 TAKE PROFIT<br>";
+
+    if (alerts === "") alerts = "⏳ STABLE";
+
+    document.getElementById("alerts").innerHTML = alerts;
+
+    let ai = "";
+    if (btcPct < 50) ai = "BUY MODE";
+    else if (btcPct > 70) ai = "SELL MODE";
+    else ai = "HOLD";
+
+    document.getElementById("ai").innerHTML = ai;
 
 }
 
